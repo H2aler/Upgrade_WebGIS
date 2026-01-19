@@ -127,52 +127,53 @@ class WebGISMap {
 
     // 지도 초기화
     initMap() {
-        // 기본 OSM 레이어 (커스텀 설정으로 오류 처리 개선)
+        // 기본 OSM 레이어
         const osmLayer = new TileLayer({
             source: new XYZ({
                 url: 'https://{a-c}.tile.openstreetmap.org/{z}/{x}/{y}.png',
                 attributions: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-                crossOrigin: 'anonymous',
-                maxZoom: 19,
-                // 타일 로드 실패 시 재시도
-                tileLoadFunction: function (imageTile, src) {
-                    const img = imageTile.getImage();
-                    img.addEventListener('error', function () {
-                        // 404 오류 시 빈 타일로 처리 (콘솔 에러 방지)
-                        console.warn('타일 로드 실패 (일시적):', src);
-                    });
-                    img.src = src;
-                }
+                crossOrigin: 'anonymous'
             }),
             title: 'OpenStreetMap'
         });
 
-        // 위성 이미지 레이어
+        // 위성 이미지 레이어 (Google Satellite - 업그레이드됨)
         const satelliteLayer = new TileLayer({
             source: new XYZ({
-                url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+                url: 'https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',
+                attributions: '© Google Maps',
                 crossOrigin: 'anonymous'
             }),
             title: '위성 이미지',
             visible: false
         });
 
-        // 지형도 레이어
+        // 하이브리드 레이어 (Google Hybrid - 위성 + 라벨)
+        const hybridLayer = new TileLayer({
+            source: new XYZ({
+                url: 'https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}',
+                attributions: '© Google Maps (Hybrid)',
+                crossOrigin: 'anonymous'
+            }),
+            title: '하이브리드',
+            visible: false
+        });
+
+        // 지형도 레이어 (Google Terrain - 업그레이드됨)
         const terrainLayer = new TileLayer({
             source: new XYZ({
-                url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',
+                url: 'https://mt1.google.com/vt/lyrs=p&x={x}&y={y}&z={z}',
+                attributions: '© Google Maps (Terrain)',
                 crossOrigin: 'anonymous'
             }),
             title: '지형도',
             visible: false
         });
 
-        // Mapillary Street View는 타일 레이어가 아닌 파노라마 뷰어로만 제공됩니다
-        // 타일 레이어는 CORS 문제로 사용할 수 없으므로 제거
-
         this.layers = {
             osm: osmLayer,
             satellite: satelliteLayer,
+            hybrid: hybridLayer,
             terrain: terrainLayer
         };
 
