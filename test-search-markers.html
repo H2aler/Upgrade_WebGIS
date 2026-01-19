@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔍 검색 결과 마커 테스트 - WebGIS</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            background: #f8f9fa;
+        }
+        
+        .test-section h3 {
+            color: #667eea;
+            margin-top: 0;
+        }
+        
+        .test-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+            transition: all 0.3s ease;
+        }
+        
+        .test-btn:hover {
+            background: #5a6fd8;
+            transform: translateY(-2px);
+        }
+        
+        .test-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .status {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 6px;
+            font-weight: 500;
+        }
+        
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        .instructions {
+            background: #e7f3ff;
+            border: 1px solid #b3d9ff;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .instructions h4 {
+            color: #0066cc;
+            margin-top: 0;
+        }
+        
+        .instructions ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        
+        .instructions li {
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🔍 검색 결과 마커 기능 테스트</h1>
+        
+        <div class="instructions">
+            <h4>📋 테스트 방법</h4>
+            <ul>
+                <li>1. 메인 WebGIS 애플리케이션을 열고 검색창에 도시나 나라를 입력하세요</li>
+                <li>2. 검색 결과 중 하나를 클릭하면 지도에서 해당 위치로 이동하고 마커가 표시됩니다</li>
+                <li>3. 우측 사이드바의 "🔍 검색 결과 마커" 패널에서 추가된 마커들을 확인할 수 있습니다</li>
+                <li>4. 각 마커에는 🚀 이동 버튼과 🗑️ 삭제 버튼이 있습니다</li>
+                <li>5. "🗑️ 모두 지우기" 버튼으로 모든 마커를 한 번에 삭제할 수 있습니다</li>
+            </ul>
+        </div>
+        
+        <div class="test-section">
+            <h3>🧪 기능 테스트</h3>
+            <button class="test-btn" onclick="testSearchMarkers()">🔍 검색 마커 테스트</button>
+            <button class="test-btn" onclick="testMarkerManagement()">📍 마커 관리 테스트</button>
+            <button class="test-btn" onclick="testClearAll()">🗑️ 전체 삭제 테스트</button>
+            <button class="test-btn" onclick="openMainApp()">🌍 메인 앱 열기</button>
+            
+            <div id="testStatus" class="status" style="display: none;"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>📊 테스트 결과</h3>
+            <div id="testResults">
+                <p>테스트를 실행하면 결과가 여기에 표시됩니다.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showStatus(message, type = 'info') {
+            const status = document.getElementById('testStatus');
+            status.textContent = message;
+            status.className = `status ${type}`;
+            status.style.display = 'block';
+            
+            setTimeout(() => {
+                status.style.display = 'none';
+            }, 5000);
+        }
+        
+        function updateResults(message) {
+            const results = document.getElementById('testResults');
+            const timestamp = new Date().toLocaleTimeString();
+            results.innerHTML += `<p><strong>[${timestamp}]</strong> ${message}</p>`;
+        }
+        
+        function testSearchMarkers() {
+            updateResults('🔍 검색 마커 테스트 시작...');
+            
+            if (typeof window.webgisMap === 'undefined') {
+                showStatus('❌ WebGIS 애플리케이션이 로드되지 않았습니다. 메인 앱을 먼저 열어주세요.', 'error');
+                updateResults('❌ 테스트 실패: WebGIS 애플리케이션 미로드');
+                return;
+            }
+            
+            // 가상의 검색 결과로 마커 추가 테스트
+            const mockResult = {
+                display_name: '서울특별시, 대한민국',
+                lat: '37.5665',
+                lon: '126.9780'
+            };
+            
+            try {
+                window.webgisMap.addSearchResultMarker(
+                    parseFloat(mockResult.lat),
+                    parseFloat(mockResult.lon),
+                    '서울',
+                    mockResult
+                );
+                
+                showStatus('✅ 검색 마커 테스트 성공! 서울 마커가 추가되었습니다.', 'success');
+                updateResults('✅ 서울 마커 추가 성공');
+                
+                // 추가 테스트 데이터
+                setTimeout(() => {
+                    const mockResult2 = {
+                        display_name: '부산광역시, 대한민국',
+                        lat: '35.1796',
+                        lon: '129.0756'
+                    };
+                    
+                    window.webgisMap.addSearchResultMarker(
+                        parseFloat(mockResult2.lat),
+                        parseFloat(mockResult2.lon),
+                        '부산',
+                        mockResult2
+                    );
+                    
+                    updateResults('✅ 부산 마커 추가 성공');
+                }, 1000);
+                
+            } catch (error) {
+                showStatus(`❌ 검색 마커 테스트 실패: ${error.message}`, 'error');
+                updateResults(`❌ 테스트 실패: ${error.message}`);
+            }
+        }
+        
+        function testMarkerManagement() {
+            updateResults('📍 마커 관리 테스트 시작...');
+            
+            if (typeof window.webgisMap === 'undefined') {
+                showStatus('❌ WebGIS 애플리케이션이 로드되지 않았습니다.', 'error');
+                updateResults('❌ 테스트 실패: WebGIS 애플리케이션 미로드');
+                return;
+            }
+            
+            try {
+                const markerCount = window.webgisMap.searchResultMarkers.length;
+                updateResults(`📍 현재 검색 결과 마커 수: ${markerCount}개`);
+                
+                if (markerCount > 0) {
+                    showStatus(`✅ 마커 관리 테스트 성공! ${markerCount}개의 마커가 있습니다.`, 'success');
+                } else {
+                    showStatus('ℹ️ 마커가 없습니다. 먼저 검색 마커 테스트를 실행하세요.', 'info');
+                }
+            } catch (error) {
+                showStatus(`❌ 마커 관리 테스트 실패: ${error.message}`, 'error');
+                updateResults(`❌ 테스트 실패: ${error.message}`);
+            }
+        }
+        
+        function testClearAll() {
+            updateResults('🗑️ 전체 삭제 테스트 시작...');
+            
+            if (typeof window.webgisMap === 'undefined') {
+                showStatus('❌ WebGIS 애플리케이션이 로드되지 않았습니다.', 'error');
+                updateResults('❌ 테스트 실패: WebGIS 애플리케이션 미로드');
+                return;
+            }
+            
+            try {
+                const beforeCount = window.webgisMap.searchResultMarkers.length;
+                window.webgisMap.clearAllSearchResultMarkers();
+                const afterCount = window.webgisMap.searchResultMarkers.length;
+                
+                showStatus(`✅ 전체 삭제 테스트 성공! ${beforeCount}개 → ${afterCount}개`, 'success');
+                updateResults(`✅ 마커 삭제 완료: ${beforeCount}개 → ${afterCount}개`);
+            } catch (error) {
+                showStatus(`❌ 전체 삭제 테스트 실패: ${error.message}`, 'error');
+                updateResults(`❌ 테스트 실패: ${error.message}`);
+            }
+        }
+        
+        function openMainApp() {
+            updateResults('🌍 메인 WebGIS 애플리케이션 열기...');
+            
+            try {
+                window.open('index.html', '_blank');
+                showStatus('✅ 메인 앱이 새 탭에서 열렸습니다.', 'success');
+                updateResults('✅ 메인 앱 열기 성공');
+            } catch (error) {
+                showStatus(`❌ 메인 앱 열기 실패: ${error.message}`, 'error');
+                updateResults(`❌ 메인 앱 열기 실패: ${error.message}`);
+            }
+        }
+        
+        // 페이지 로드 시 초기화
+        document.addEventListener('DOMContentLoaded', () => {
+            updateResults('🚀 테스트 페이지가 로드되었습니다.');
+            updateResults('💡 메인 WebGIS 애플리케이션을 열고 테스트를 진행하세요.');
+        });
+    </script>
+</body>
+</html>
