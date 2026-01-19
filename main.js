@@ -137,36 +137,41 @@ class WebGISMap {
             title: 'OpenStreetMap'
         });
 
-        // 위성 이미지 레이어 (Google Satellite - 업그레이드됨)
+        // 위성 이미지 레이어 (Esri World Imagery - 균일한 고해상도 품질)
         const satelliteLayer = new TileLayer({
             source: new XYZ({
-                url: 'https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',
-                attributions: '© Google Maps',
-                crossOrigin: 'anonymous'
+                url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+                attributions: '© Esri & DigitalGlobe',
+                crossOrigin: 'anonymous',
+                maxZoom: 19
             }),
-            title: '위성 이미지',
-            visible: false
+            title: 'HD 위성',
+            visible: false,
+            preload: 2
         });
 
-        // 하이브리드 레이어 (Google Hybrid - 위성 + 라벨)
+        // 하이브리드 레이어 (Google Hybrid - 위성 + 고정밀 라벨)
         const hybridLayer = new TileLayer({
             source: new XYZ({
-                url: 'https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}',
-                attributions: '© Google Maps (Hybrid)',
-                crossOrigin: 'anonymous'
+                url: 'https://mt{0-3}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}',
+                attributions: '© Google Maps',
+                crossOrigin: 'anonymous',
+                maxZoom: 20
             }),
-            title: '하이브리드',
-            visible: false
+            title: '구글 하리브리드',
+            visible: false,
+            preload: 2
         });
 
-        // 지형도 레이어 (Google Terrain - 업그레이드됨)
+        // 지형도 레이어 (Google Terrain)
         const terrainLayer = new TileLayer({
             source: new XYZ({
-                url: 'https://mt1.google.com/vt/lyrs=p&x={x}&y={y}&z={z}',
-                attributions: '© Google Maps (Terrain)',
-                crossOrigin: 'anonymous'
+                url: 'https://mt{0-3}.google.com/vt/lyrs=p&x={x}&y={y}&z={z}',
+                attributions: '© Google Maps',
+                crossOrigin: 'anonymous',
+                maxZoom: 20
             }),
-            title: '지형도',
+            title: '구글 지형도',
             visible: false
         });
 
